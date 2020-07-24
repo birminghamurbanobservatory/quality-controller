@@ -5,7 +5,7 @@ import {logCensorAndRethrow} from '../../events/handle-event-handler-error';
 import * as joi from '@hapi/joi';
 import {BadRequest} from '../../errors/BadRequest';
 import {qualityControlObservation} from './quality-control.controller';
-import {ObservationClient} from './observation-client.interface';
+import {ObservationClient} from './observation/observation-client.interface';
 
 
 export async function subscribeToQualityControlEvents(): Promise<void> {
