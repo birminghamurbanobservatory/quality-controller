@@ -26,10 +26,12 @@ export function observationToFindChecksWhere(observation: ObservationClient): an
 
   const where = {};
 
+  // TODO
 
   return where;
 
 }
+
 
 
 // TODO

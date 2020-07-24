@@ -9,6 +9,6 @@ export async function qualityControlObservation(observation: ObservationClient):
   
   // Find any checks that match the properties of this observation
 
-  return obs;
+  return obs; // <-- TODO: change this
 
 }
