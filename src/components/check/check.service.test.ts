@@ -27,6 +27,27 @@ describe('Testing of observationToFindChecksWhere function', () => {
           ]
         },
         {
+          $or: [
+            {observedProperty: 'air-temperature'},
+            {observedProperty: {$exists: false}},
+          ]
+        },
+        {
+          $or: [
+            {unit: 'degree-celsius'},
+            {unit: {$exists: false}},
+          ]
+        },
+        {
+          $or: [
+            {aggregation: 'instant'},
+            {aggregation: {$exists: false}},
+          ]
+        },
+        {
+          hasFeatureOfInterest: {$exists: false},
+        },
+        {
           // These exist clauses for properties that don't exist in the observation are crucial
           hasDeployment: {$exists: false},
         },
@@ -35,21 +56,6 @@ describe('Testing of observationToFindChecksWhere function', () => {
         },
         {
           hostedByPathIncludes: {$exists: false},
-        },
-        {
-          hasFeatureOfInterest: {$exists: false},
-        },
-        {
-          $or: [
-            {observedProperty: 'airTemperature'},
-            {observedProperty: {$exists: false}},
-          ]
-        },
-        {
-          $or: [
-            {aggregation: 'instant'},
-            {aggregation: {$exists: false}},
-          ]
         },
         {
           disciplines: {$exists: false},
@@ -98,14 +104,32 @@ describe('Testing of observationToFindChecksWhere function', () => {
       $and: [
         {
           $or: [
+            {madeBySensor: 'sensor-1'},
+            {madeBySensor: {$exists: false}},
+          ]
+        },
+        {
+          $or: [
+            {observedProperty: 'air-temperature'},
+            {observedProperty: {$exists: false}},
+          ]
+        },
+        {
+          $or: [
             {unit: 'degree-celsius'},
             {unit: {$exists: false}},
           ]
         },
         {
           $or: [
-            {madeBySensor: 'sensor-1'},
-            {madeBySensor: {$exists: false}},
+            {aggregation: 'instant'},
+            {aggregation: {$exists: false}},
+          ]
+        },
+        {
+          $or: [
+            {hasFeatureOfInterest: 'earth-atmosphere'},
+            {hasFeatureOfInterest: {$exists: false}},
           ]
         },
         {
@@ -122,27 +146,9 @@ describe('Testing of observationToFindChecksWhere function', () => {
         },
         {
           $or: [
+            {hostedByPathIncludes: {$exists: false}},
             {hostedByPathIncludes: 'parent-plat'},
             {hostedByPathIncludes: 'child-plat'},
-            {hostedByPathIncludes: {$exists: false}},
-          ]
-        },
-        {
-          $or: [
-            {hasFeatureOfInterest: 'earth-atmosphere'},
-            {hasFeatureOfInterest: {$exists: false}},
-          ]
-        },
-        {
-          $or: [
-            {observedProperty: 'airTemperature'},
-            {observedProperty: {$exists: false}},
-          ]
-        },
-        {
-          $or: [
-            {aggregation: 'instant'},
-            {aggregation: {$exists: false}},
           ]
         },
         {
@@ -153,9 +159,9 @@ describe('Testing of observationToFindChecksWhere function', () => {
         },
         {
           $or: [
-            {disciplinesIncludes: 'atmospheric-chemistry'},
-            {disciplinesIncludes: 'meteorology'},
             {disciplinesIncludes: {$exists: false}},
+            {disciplinesIncludes: 'meteorology'},
+            {disciplinesIncludes: 'atmospheric-chemistry'},
           ]
         },
         {
@@ -166,9 +172,9 @@ describe('Testing of observationToFindChecksWhere function', () => {
         },
         {
           $or: [
+            {usedProceduresIncludes: {$exists: false}},
             {usedProceduresIncludes: 'b-procedure'},
             {usedProceduresIncludes: 'a-procedure'},
-            {usedProceduresIncludes: {$exists: false}},
           ]
         }
       ]

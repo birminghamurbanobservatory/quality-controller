@@ -38,12 +38,10 @@ async function subscribeToObservationQualityControlRequests(): Promise<any> {
   // N.B. The event-stream package changes the configuration of a queue based on whether it contains the work 'request'. Here we leave it out because we want the queue to be durable and lazy to aid the processing of many observations in bulk.
   const eventName = 'observation.quality-control';
 
-  const deploymentCreateRequestSchema = joi.object({
+  const observationQualityControlSchema = joi.object({
     observation: joi.object({
       // Let the controller check this
-    })
-    .unknown()
-    .required()
+    }).unknown().required()
   }).required();
 
   await event.subscribe(eventName, async (message): Promise<void> => {
@@ -52,7 +50,7 @@ async function subscribeToObservationQualityControlRequests(): Promise<any> {
 
     let qualityControlledObservation: ObservationClient;
     try {
-      const {error: err} = deploymentCreateRequestSchema.validate(message);
+      const {error: err} = observationQualityControlSchema.validate(message);
       if (err) throw new BadRequest(`Invalid ${eventName} request: ${err.message}`);    
       qualityControlledObservation = await qualityControlObservation(message.observation);
     } catch (err) {

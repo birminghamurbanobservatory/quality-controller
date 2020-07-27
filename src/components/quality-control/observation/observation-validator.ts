@@ -1,8 +1,5 @@
 import * as joi from '@hapi/joi';
-import {validateGeometry} from '../../utils/geojson-validator';
-import {InvalidObservation} from './errors/InvalidObservation';
-import {cloneDeep, intersection} from 'lodash';
-import * as check from 'check-types';
+import {InvalidObservation} from './InvalidObservation';
 import {ObservationClient} from './observation-client.interface';
 
 

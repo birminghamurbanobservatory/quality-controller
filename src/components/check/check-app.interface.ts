@@ -2,6 +2,8 @@ export interface CheckApp {
   checkType: string;
   appliesTo: AppliesTo;
   config: any;
+  createdAt: Date;
+  updatedAt: Date;
 }
 
 
