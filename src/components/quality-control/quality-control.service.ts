@@ -1,17 +1,17 @@
 import {CheckApp} from '../check/check-app.interface';
 import {ObservationClient} from './observation/observation-client.interface';
 import {TimeseriesApp} from '../timeseries/timeseries-app.interface';
-import {cloneDeep} from 'lodash';
+import {cloneDeep, isEqual} from 'lodash';
 import * as logger from 'node-logger';
-import * as checkTypes from 'check-types';
+import * as ck from 'check-types';
 
 
 export function applyChecksToObservation(checks: CheckApp[], observation: ObservationClient, timeseries?: TimeseriesApp): ObservationClient {
 
   const checkFuncs: any = {};
   checkFuncs.persistence = applyPersistenceCheckToObservation;
-  checkFuncs['lower-bound'] = applyLowerBoundCheckToObservation;
-  checkFuncs['upper-bound'] = applyUpperBoundCheckToObservation;
+  checkFuncs['below-range'] = applyBelowRangeCheckToObservation;
+  checkFuncs['above-range'] = applyAboveRangeCheckToObservation;
 
   const obsCopy = cloneDeep(observation);
 
@@ -49,11 +49,13 @@ export function applyPersistenceCheckToObservation(check: CheckApp, observation:
 
   let updatedObservation = cloneDeep(observation);
 
-  if (timeseries && timeseries.persistence) {
-    const thresholdExceeded = timeseries.persistence.nRepeats > check.config.nRepeatsAllowed;
+  // N.B. the timeseries hasn't been updated by this new observation yet, so we'll need to perform an equality check to make sure the same value still persists.
+  if (timeseries && timeseries.persistence && isEqual(observation.hasResult.value, timeseries.persistence.lastValue)) {
+    // Because the tally doesn't include this observation yet we'll want to use >= rather than >.
+    const thresholdExceeded = timeseries.persistence.nConsecutive >= check.config.nConsecutiveAllowed;
     let timespanExceeded = true;
-    if (checkTypes.assigned(check.config.minSpanInSeconds)) {
-      const timespan = (new Date(observation.resultTime).getTime() - timeseries.lastObsTime.getTime()) / 1000; // in seconds
+    if (ck.assigned(check.config.minSpanInSeconds)) {
+      const timespan = (new Date(observation.resultTime).getTime() - timeseries.persistence.firstSeen.getTime()) / 1000; // in seconds
       timespanExceeded = timespan > check.config.minSpanInSeconds;
     }
     if (thresholdExceeded && timespanExceeded) {
@@ -67,18 +69,18 @@ export function applyPersistenceCheckToObservation(check: CheckApp, observation:
 
 
 //------------------------
-// lower-bound
+// below range
 //------------------------
-export function applyLowerBoundCheckToObservation(check: CheckApp, observation: ObservationClient): ObservationClient {
+export function applyBelowRangeCheckToObservation(check: CheckApp, observation: ObservationClient): ObservationClient {
 
   let updatedObservation = cloneDeep(observation);
 
-  if (checkTypes.number(observation.hasResult.value)) {
+  if (ck.number(observation.hasResult.value)) {
     if (observation.hasResult.value < check.config.minValue) {
-      updatedObservation = addFlagToObservation(updatedObservation, 'lower-bound');
+      updatedObservation = addFlagToObservation(updatedObservation, 'below-range');
     }
   } else {
-    logger.warn('Trying to run a lower-bound check on a observation with a non-numeric value', observation);
+    logger.warn('Trying to run a below-range check on a observation with a non-numeric value', observation);
   }
 
   return updatedObservation;
@@ -87,18 +89,18 @@ export function applyLowerBoundCheckToObservation(check: CheckApp, observation: 
 
 
 //------------------------
-// upper-bound
+// above-range
 //------------------------
-export function applyUpperBoundCheckToObservation(check: CheckApp, observation: ObservationClient): ObservationClient {
+export function applyAboveRangeCheckToObservation(check: CheckApp, observation: ObservationClient): ObservationClient {
 
   let updatedObservation = cloneDeep(observation);
 
-  if (checkTypes.number(observation.hasResult.value)) {
+  if (ck.number(observation.hasResult.value)) {
     if (observation.hasResult.value > check.config.maxValue) {
-      updatedObservation = addFlagToObservation(updatedObservation, 'upper-bound');
+      updatedObservation = addFlagToObservation(updatedObservation, 'above-range');
     }
   } else {
-    logger.warn('Trying to run an upper-bound check on an observation with a non-numeric value', observation);
+    logger.warn('Trying to run an above-range check on an observation with a non-numeric value', observation);
   }
 
   return updatedObservation;

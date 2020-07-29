@@ -2,7 +2,7 @@ import {ObservationClient} from './observation/observation-client.interface';
 import {validateObservation} from './observation/observation-validator';
 import {findChecksForObservation} from '../check/check.service';
 import {uniq, intersection, isEqual} from 'lodash';
-import {getTimeseries, updateTimeseries, createTimeseries} from '../timeseries/timeseries.service';
+import {getTimeseries, updateTimeseries, createTimeseries, deleteTimeseries} from '../timeseries/timeseries.service';
 import {applyChecksToObservation} from './quality-control.service';
 import {TimeseriesApp} from '../timeseries/timeseries-app.interface';
 import * as logger from 'node-logger';
@@ -44,8 +44,9 @@ export async function qualityControlObservation(observation: ObservationClient):
     checkedObservation = applyChecksToObservation(checks, observation);
   }
 
-  const upsertedTimeseries = await upsertTimeseries(observation, uniqCheckTypes, existingTimeseries);
-  logger.debug('Timeseries upserted', upsertedTimeseries);
+  if (existingTimeseries || timeseriesIsInvolved) {
+    await upsertOrDeleteTimeseries(observation, uniqCheckTypes, existingTimeseries);
+  }
 
   return checkedObservation;
 
@@ -54,7 +55,7 @@ export async function qualityControlObservation(observation: ObservationClient):
 
 
 
-export async function upsertTimeseries(observation: ObservationClient, checkTypesToSupport: string[], existingTimeseries?: TimeseriesApp): Promise<TimeseriesApp> {
+export async function upsertOrDeleteTimeseries(observation: ObservationClient, checkTypesToSupport: string[], existingTimeseries?: TimeseriesApp): Promise<TimeseriesApp> {
 
   let upsertedTimeseries;
 
@@ -69,15 +70,17 @@ export async function upsertTimeseries(observation: ObservationClient, checkType
 
     if (observationIsMoreRecent) {
 
+      updates.lastObsTime = new Date(observation.resultTime);
+
       if (checkTypesToSupport.includes('persistence')) {
         updates.persistence = {
           lastValue: observation.hasResult.value
         };
         if (existingTimeseries.persistence && isEqual(existingTimeseries.persistence.lastValue, observation.hasResult.value)) {
-          updates.persistence.nRepeats = existingTimeseries.persistence.nRepeats + 1;
-          updates.persistence.firstSeen = existingTimeseries.persistence.lastSeen;
+          updates.persistence.nConsecutive = existingTimeseries.persistence.nConsecutive + 1;
+          updates.persistence.firstSeen = existingTimeseries.persistence.firstSeen;
         } else {
-          updates.persistence.nRepeats = 1;
+          updates.persistence.nConsecutive = 1;
           updates.persistence.firstSeen = new Date(observation.resultTime);
         }
       }
@@ -97,6 +100,16 @@ export async function upsertTimeseries(observation: ObservationClient, checkType
     }
 
     upsertedTimeseries = await updateTimeseries(observation.timeseriesId, updates);
+    logger.debug('Timeseries upserted', upsertedTimeseries);
+
+    // If the timeseries no longer holds any useful information, then we might as well delete it.
+    const keysThatMakeTimeseriesUseful = ['persistence'];
+    const overlap = intersection(keysThatMakeTimeseriesUseful, Object.keys(upsertedTimeseries));
+    if (overlap.length === 0) {
+      await deleteTimeseries(observation.timeseriesId);
+      logger.debug(`Timeseries ${observation.timeseriesId} deleted because it is no longer required for the checks that need to be performed.`);
+      upsertedTimeseries = undefined;
+    }
 
   //------------------------
   // Insert
@@ -111,12 +124,13 @@ export async function upsertTimeseries(observation: ObservationClient, checkType
     if (checkTypesToSupport.includes('persistence')) {
       timeseriesToCreate.persistence = {
         lastValue: observation.hasResult.value,
-        nRepeats: 1,
+        nConsecutive: 1,
         firstSeen: new Date(observation.resultTime)
       };
     }
 
     upsertedTimeseries = await createTimeseries(timeseriesToCreate);
+    logger.debug('New timeseries created', upsertedTimeseries);
 
   }
 

@@ -2,6 +2,7 @@
 // Dependencies
 //-------------------------------------------------
 import * as mongoose from 'mongoose';
+import {validCheckTypes} from './check.service';
 
 
 //-------------------------------------------------
@@ -11,20 +12,20 @@ const schema = new mongoose.Schema({
   checkType: {
     type: String,
     required: true,
-    enum: ['persistence', 'above-range', 'below-range']
+    enum: validCheckTypes
   },
   appliesTo: {
     madeBySensor: String,
     observedProperty: String,
     unit: String,
-    featureOfInterest: String,
+    hasFeatureOfInterest: String,
     hasDeployment: String,
     aggregation: String,
     // Worth having two fields here for array properties, because it gives the option to specify strict matches, but also a simple string value which might be easier to use on the front end.
     disciplines: [String], // exact match
     disciplinesIncludes: String, // observation property array just has to include this value to match
     hostedByPath: [String], // order is important
-    hosteByPathIncludes: String,
+    hostedByPathIncludes: String,
     usedProcedures: [String],
     usedProceduresIncludes: String
   },

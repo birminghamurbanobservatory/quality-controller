@@ -4,6 +4,8 @@ import {GetTimeseriesFail} from './errors/GetTimeseriesFail';
 import {UpdateTimeseriesFail} from './errors/UpdateTimeseriesFail';
 import {TimeseriesApp} from './timeseries-app.interface';
 import {CreateTimeseriesFail} from './errors/CreateTimeseriesFail';
+import {CountTimeseriesFail} from './errors/CountTimeseriesFail';
+import {DeleteTimeseriesFail} from './errors/DeleteTimeseriesFail';
 
 
 export async function getTimeseries(timeseriesId: string): Promise<TimeseriesApp> {
@@ -67,6 +69,39 @@ export async function updateTimeseries(timeseriesId: string, updates: any): Prom
   }
 
   return timeseriesDbToApp(updatedTimeseries);
+
+}
+
+
+export async function countTimeseries(where = {}): Promise<number> {
+
+  let count;
+
+  try {
+    count = await Timeseries.countDocuments(where).exec();
+  } catch (err) {
+    throw new CountTimeseriesFail(undefined, err.message);
+  }
+
+  return count;
+
+}
+
+
+export async function deleteTimeseries(timeseriesId: string): Promise<TimeseriesApp> {
+
+  let deletedTimeseries;
+  try {
+    deletedTimeseries = await Timeseries.findOneAndDelete({timeseriesId}).exec();
+  } catch (err) {
+    throw new DeleteTimeseriesFail(`Failed to delete timeseries '${timeseriesId}'`, err.message);
+  }
+
+  if (!deletedTimeseries) {
+    throw new TimeseriesNotFound(`A timeseries with timeseriesId '${timeseriesId}' could not be found`);
+  }
+
+  return timeseriesDbToApp(deletedTimeseries);
 
 }
 

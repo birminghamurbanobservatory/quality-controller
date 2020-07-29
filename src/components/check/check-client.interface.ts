@@ -1,10 +1,10 @@
-export interface CheckApp {
+export interface CheckClient {
   id?: string;
   checkType: string;
   appliesTo: AppliesTo;
   config: any;
-  createdAt?: Date;
-  updatedAt?: Date;
+  createdAt?: string;
+  updatedAt?: string;
 }
 
 

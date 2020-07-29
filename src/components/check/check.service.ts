@@ -2,9 +2,15 @@ import Check from './check.model';
 import {CheckApp} from './check-app.interface';
 import {ObservationClient} from '../quality-control/observation/observation-client.interface';
 import {FindChecksForObservationFail} from './errors/FindChecksForObservationFail';
-import * as checkTypes from 'check-types';
+import * as ck from 'check-types';
 import {sortBy, cloneDeep} from 'lodash';
 import {CreateCheckFail} from './errors/CreateCheckFail';
+import {CheckClient} from './check-client.interface';
+import {CheckNotFound} from './errors/CheckNotFound';
+import {DeleteCheckFail} from './errors/DeleteCheckFail';
+
+
+export const validCheckTypes = ['below-range', 'above-range', 'persistence'];
 
 
 export async function findChecksForObservation(observation: ObservationClient): Promise<CheckApp[]> {
@@ -31,7 +37,7 @@ export function observationToFindChecksWhere(observation: ObservationClient): an
 
   // madeBySensor
   let madeBySensorObj;
-  if (checkTypes.nonEmptyString(observation.madeBySensor)) {
+  if (ck.nonEmptyString(observation.madeBySensor)) {
     madeBySensorObj = {
       $or: [
         {madeBySensor: observation.madeBySensor},
@@ -45,7 +51,7 @@ export function observationToFindChecksWhere(observation: ObservationClient): an
 
   // observedProperty
   let observedPropertyObj;
-  if (checkTypes.nonEmptyString(observation.observedProperty)) {
+  if (ck.nonEmptyString(observation.observedProperty)) {
     observedPropertyObj = {
       $or: [
         {observedProperty: observation.observedProperty},
@@ -59,7 +65,7 @@ export function observationToFindChecksWhere(observation: ObservationClient): an
 
   // unit
   let unitObj;
-  if (checkTypes.nonEmptyString(observation.hasResult.unit)) {
+  if (ck.nonEmptyString(observation.hasResult.unit)) {
     unitObj = {
       $or: [
         {unit: observation.hasResult.unit},
@@ -73,7 +79,7 @@ export function observationToFindChecksWhere(observation: ObservationClient): an
 
   // aggregation
   let aggregationObj;
-  if (checkTypes.nonEmptyString(observation.aggregation)) {
+  if (ck.nonEmptyString(observation.aggregation)) {
     aggregationObj = {
       $or: [
         {aggregation: observation.aggregation},
@@ -87,7 +93,7 @@ export function observationToFindChecksWhere(observation: ObservationClient): an
 
   // featureOfInterest
   let hasFeatureOfInterestObj;
-  if (checkTypes.nonEmptyString(observation.hasFeatureOfInterest)) {
+  if (ck.nonEmptyString(observation.hasFeatureOfInterest)) {
     hasFeatureOfInterestObj = {
       $or: [
         {hasFeatureOfInterest: observation.hasFeatureOfInterest},
@@ -101,7 +107,7 @@ export function observationToFindChecksWhere(observation: ObservationClient): an
 
   // hasDeployment
   let hasDeploymentObj;
-  if (checkTypes.nonEmptyString(observation.hasDeployment)) {
+  if (ck.nonEmptyString(observation.hasDeployment)) {
     hasDeploymentObj = {
       $or: [
         {hasDeployment: observation.hasDeployment},
@@ -115,7 +121,7 @@ export function observationToFindChecksWhere(observation: ObservationClient): an
 
   // hostedByPath
   let hostedByPathObj;
-  if (checkTypes.nonEmptyArray(observation.hostedByPath)) {
+  if (ck.nonEmptyArray(observation.hostedByPath)) {
     hostedByPathObj = {
       $or: [
         {hostedByPath: observation.hostedByPath},
@@ -129,7 +135,7 @@ export function observationToFindChecksWhere(observation: ObservationClient): an
 
   // hostedByPathIncludes
   let hostedByPathIncludesObj;
-  if (checkTypes.nonEmptyArray(observation.hostedByPath)) {
+  if (ck.nonEmptyArray(observation.hostedByPath)) {
     hostedByPathIncludesObj = {
       $or: [
         {hostedByPathIncludes: {$exists: false}}
@@ -145,7 +151,7 @@ export function observationToFindChecksWhere(observation: ObservationClient): an
 
   // disciplines
   let disciplinesObj;
-  if (checkTypes.nonEmptyArray(observation.disciplines)) {
+  if (ck.nonEmptyArray(observation.disciplines)) {
     disciplinesObj = {
       $or: [
         // disciplines array will be sorted before creating a new check, thus important we sort here too to ensure match.
@@ -160,7 +166,7 @@ export function observationToFindChecksWhere(observation: ObservationClient): an
 
   // disciplinesIncludes
   let disciplinesIncludesObj;
-  if (checkTypes.nonEmptyArray(observation.disciplines)) {
+  if (ck.nonEmptyArray(observation.disciplines)) {
     disciplinesIncludesObj = {
       $or: [
         {disciplinesIncludes: {$exists: false}}
@@ -176,7 +182,7 @@ export function observationToFindChecksWhere(observation: ObservationClient): an
 
   // usedProcedures
   let usedProceduresObj;
-  if (checkTypes.nonEmptyArray(observation.usedProcedures)) {
+  if (ck.nonEmptyArray(observation.usedProcedures)) {
     usedProceduresObj = {
       $or: [
         {usedProcedures: observation.usedProcedures},
@@ -190,7 +196,7 @@ export function observationToFindChecksWhere(observation: ObservationClient): an
 
   // usedProceduresIncludes
   let usedProceduresIncludesObj;
-  if (checkTypes.nonEmptyArray(observation.usedProcedures)) {
+  if (ck.nonEmptyArray(observation.usedProcedures)) {
     usedProceduresIncludesObj = {
       $or: [
         {usedProceduresIncludes: {$exists: false}}
@@ -229,6 +235,38 @@ export async function createCheck(check: CheckApp): Promise<CheckApp> {
 
 }
 
+
+export async function deleteCheck(id: string): Promise<CheckApp> {
+
+  let deletedCheck;
+  try {
+    deletedCheck = await Check.findByIdAndDelete(id).exec();
+  } catch (err) {
+    throw new DeleteCheckFail(`Failed to delete check with id '${id}'`, err.message);
+  }
+
+  if (!deletedCheck) {
+    throw new CheckNotFound(`A check with id '${id}' could not be found`);
+  }
+
+  return checkDbToApp(deletedCheck);
+
+}
+
+
+
+export function checkClientToApp(checkClient: CheckClient): CheckApp {
+  const checkApp: any = cloneDeep(checkClient);
+  return checkApp;
+}
+
+
+export function checkAppToClient(checkApp: CheckApp): CheckClient {
+  const checkClient: any = cloneDeep(checkApp);
+  checkClient.createdAt = checkClient.updatedAt.toISOString();
+  checkClient.updatedAt = checkClient.updatedAt.toISOString();
+  return checkClient;
+}
 
 
 function checkAppToDb(checkApp: any): any {
