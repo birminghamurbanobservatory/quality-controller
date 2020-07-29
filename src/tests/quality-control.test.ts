@@ -108,7 +108,7 @@ describe('Tests of full quality control process', () => {
 
   test('Example with a persistence check', async () => {
     
-    expect.assertions(16);
+    expect.assertions(14);
 
     const initialObservationBefore = {
       id: 'obsID123',
@@ -204,18 +204,6 @@ describe('Tests of full quality control process', () => {
         firstSeen: new Date(goodObsBefore.resultTime)
       }
     });
-
-    // Check a timeseries is deleted if there's no longer any tests that require it.
-    await deleteCheck(check.id);
-
-    // The timeseries won't be deleted until we quality control another observation 
-    const noChecksObsBefore = cloneDeep(goodObsBefore);
-    noChecksObsBefore.resultTime = add(new Date(noChecksObsBefore.resultTime), {minutes: intervalInMinutes}).toISOString();
-    const noChecksObsAfter = await qualityControlObservation(noChecksObsBefore);
-    expect(noChecksObsAfter).toEqual(noChecksObsBefore);
-
-    const timeseriesCountAfterCheckDeleted = await countTimeseries();
-    expect(timeseriesCountAfterCheckDeleted).toBe(0);
 
   });
 

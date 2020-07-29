@@ -45,7 +45,7 @@ export function addFlagToObservation(observation: ObservationClient, flag: strin
 //------------------------
 // persistence
 //------------------------
-export function applyPersistenceCheckToObservation(check: CheckApp, observation: ObservationClient, timeseries: TimeseriesApp): ObservationClient {
+export function applyPersistenceCheckToObservation(check: CheckApp, observation: ObservationClient, timeseries?: TimeseriesApp): ObservationClient {
 
   let updatedObservation = cloneDeep(observation);
 

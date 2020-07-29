@@ -18,6 +18,7 @@ export async function qualityControlObservation(observation: ObservationClient):
 
   if (checks.length === 0) {
     // N.B. this means if there's no checks then the timeseries info won't bother being kept up to date.
+    // It also means we don't bother deleting timeseries that are no longer useful before there are no matching checks. Although this would be nice to do, the trade-off is that every time an observations comes in we'd have to look to see if its timeseries exists. Decided it wasn't worth LOTS of the extra queries just to delete some absolete timeseries.
     return observation;
   }
 
@@ -45,7 +46,7 @@ export async function qualityControlObservation(observation: ObservationClient):
   }
 
   if (existingTimeseries || timeseriesIsInvolved) {
-    await upsertOrDeleteTimeseries(observation, uniqCheckTypes, existingTimeseries);
+    await upsertTimeseries(observation, uniqCheckTypes, existingTimeseries);
   }
 
   return checkedObservation;
@@ -55,7 +56,7 @@ export async function qualityControlObservation(observation: ObservationClient):
 
 
 
-export async function upsertOrDeleteTimeseries(observation: ObservationClient, checkTypesToSupport: string[], existingTimeseries?: TimeseriesApp): Promise<TimeseriesApp> {
+export async function upsertTimeseries(observation: ObservationClient, checkTypesToSupport: string[], existingTimeseries?: TimeseriesApp): Promise<TimeseriesApp> {
 
   let upsertedTimeseries;
 
@@ -100,16 +101,7 @@ export async function upsertOrDeleteTimeseries(observation: ObservationClient, c
     }
 
     upsertedTimeseries = await updateTimeseries(observation.timeseriesId, updates);
-    logger.debug('Timeseries upserted', upsertedTimeseries);
-
-    // If the timeseries no longer holds any useful information, then we might as well delete it.
-    const keysThatMakeTimeseriesUseful = ['persistence'];
-    const overlap = intersection(keysThatMakeTimeseriesUseful, Object.keys(upsertedTimeseries));
-    if (overlap.length === 0) {
-      await deleteTimeseries(observation.timeseriesId);
-      logger.debug(`Timeseries ${observation.timeseriesId} deleted because it is no longer required for the checks that need to be performed.`);
-      upsertedTimeseries = undefined;
-    }
+    logger.debug(`Timeseries ${upsertedTimeseries.timeseriesId} updated`, upsertedTimeseries);
 
   //------------------------
   // Insert
@@ -130,7 +122,7 @@ export async function upsertOrDeleteTimeseries(observation: ObservationClient, c
     }
 
     upsertedTimeseries = await createTimeseries(timeseriesToCreate);
-    logger.debug('New timeseries created', upsertedTimeseries);
+    logger.debug(`New timeseries ${upsertedTimeseries.timeseriesId} created`, upsertedTimeseries);
 
   }
 
