@@ -40,8 +40,8 @@ const schema = new mongoose.Schema({
 // Indexes
 //-------------------------------------------------
 // These indexes should be enough to speed up most queries.
-schema.index({observedProperty: 1});
-schema.index({hasDeployment: 1});
+schema.index({'appliesTo.observedProperty': 1});
+schema.index({'appliesTo.hasDeployment': 1});
 
 
 //-------------------------------------------------

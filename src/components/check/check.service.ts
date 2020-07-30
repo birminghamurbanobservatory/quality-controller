@@ -9,6 +9,10 @@ import {CheckClient} from './check-client.interface';
 import {CheckNotFound} from './errors/CheckNotFound';
 import {DeleteCheckFail} from './errors/DeleteCheckFail';
 import {GetCheckFail} from './errors/GetCheckFail';
+import {paginationOptionsToMongoFindOptions} from '../../utils/pagination-options-to-mongo-find-options';
+import {whereToMongoFind} from '../../utils/where-to-mongo-find';
+import {renameProperties} from '../../utils/rename';
+import {GetChecksFail} from './errors/GetChecksFail';
 
 
 export const validCheckTypes = ['below-range', 'above-range', 'persistence'];
@@ -257,6 +261,74 @@ export async function getCheck(id: string): Promise<CheckApp> {
 
 
 
+
+export async function getChecks(where: any = {}, options: any = {}): Promise<{data: CheckApp[], count: number; total: number}> {
+
+  // sort the disciplines alpabetically before querying
+  if (where.disciplines) {
+    where.disciplines = sortBy(where.disciplines);
+  }
+
+  const appliesToProps = [
+    'madeBySensor',
+    'observedProperty',
+    'unit',
+    'hasFeatureOfInterest',
+    'hasDeployment',
+    'aggregation',
+    'disciplines',
+    'disciplinesIncludes',
+    'hostedByPath',
+    'hostedByPathIncludes',
+    'usedProcedures',
+    'usedProceduresIncludes'
+  ];
+
+  const mappings = {};  
+  appliesToProps.forEach((key) => {
+    mappings[key] = `appliesTo.${key}`;
+  });
+
+  // Will need prefix most of the where properties with "appliesTo."
+  const whereRenamed = renameProperties(cloneDeep(where), mappings);
+  if (whereRenamed.or) {
+    whereRenamed.or = whereRenamed.or.map((item) => renameProperties(item, mappings));
+  }
+  
+  const findWhere = whereToMongoFind(whereRenamed);
+
+  const findOptions = paginationOptionsToMongoFindOptions(options);
+  const limitAssigned = ck.assigned(options.limit);
+
+  let found;
+  try {
+    found = await Check.find(findWhere, null, findOptions).exec();
+  } catch (err) {
+    throw new GetChecksFail(undefined, err.message);
+  }
+
+  const count = found.length;
+  let total;
+
+  if (limitAssigned) {
+    if (count < findOptions.limit && findOptions.skip === 0) {
+      total = count;
+    } else {
+      total = await Check.countDocuments(findWhere);
+    }
+  } else {
+    total = count;
+  }
+
+  const forApp = found.map(checkDbToApp);
+
+  return {
+    data: forApp,
+    count,
+    total
+  };
+
+}
 
 
 
