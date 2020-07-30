@@ -8,6 +8,7 @@ import {CreateCheckFail} from './errors/CreateCheckFail';
 import {CheckClient} from './check-client.interface';
 import {CheckNotFound} from './errors/CheckNotFound';
 import {DeleteCheckFail} from './errors/DeleteCheckFail';
+import {GetCheckFail} from './errors/GetCheckFail';
 
 
 export const validCheckTypes = ['below-range', 'above-range', 'persistence'];
@@ -234,6 +235,30 @@ export async function createCheck(check: CheckApp): Promise<CheckApp> {
   return checkDbToApp(createdCheck);
 
 }
+
+
+
+export async function getCheck(id: string): Promise<CheckApp> {
+
+  let check;
+  try {
+    check = await Check.findById(id).exec();
+  } catch (err) {
+    throw new GetCheckFail(`Failed to get check with id '${id}'`, err.message);
+  }
+
+  if (!check) {
+    throw new CheckNotFound(`A check with id '${id}' could not be found`);
+  }
+
+  return checkDbToApp(check);
+
+}
+
+
+
+
+
 
 
 export async function deleteCheck(id: string): Promise<CheckApp> {

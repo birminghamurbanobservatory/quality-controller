@@ -5,6 +5,9 @@ import {persistenceConfigSchema} from './schemas/persistence-config.schema';
 import {aboveRangeConfigSchema} from './schemas/above-range-config.schema';
 import * as checkService from './check.service';
 import {CheckClient} from './check-client.interface';
+import * as logger from 'node-logger';
+import {CheckApp} from './check-app.interface';
+
 
 const validCheckTypes = checkService.validCheckTypes;
 
@@ -50,7 +53,17 @@ export async function createCheck(check: any): Promise<CheckClient> {
 }
 
 
-export async function deleteCheck(id: any): Promise<void> {
+export async function getCheck(id: string): Promise<CheckClient> {
+  const check: CheckApp = await checkService.getCheck(id);
+  logger.debug('Check found', check);
+  return checkService.checkAppToClient(check);
+}
+
+
+
+
+
+export async function deleteCheck(id: string): Promise<void> {
   await checkService.deleteCheck(id);
   return;
 }
