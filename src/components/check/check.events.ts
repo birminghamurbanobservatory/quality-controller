@@ -5,10 +5,10 @@ import {logCensorAndRethrow} from '../../events/handle-event-handler-error';
 import * as joi from '@hapi/joi';
 import {BadRequest} from '../../errors/BadRequest';
 import {CheckClient} from './check-client.interface';
-import {createCheck, deleteCheck} from './check.controller';
+import {createCheck, deleteCheck, getCheck, getChecks} from './check.controller';
 
 
-export async function subscribeToQualityControlEvents(): Promise<void> {
+export async function subscribeToCheckEvents(): Promise<void> {
 
   const subscriptionFunctions = [
     subscribeToCheckCreateRequests,
@@ -58,7 +58,7 @@ async function subscribeToCheckCreateRequests(): Promise<any> {
     try {
       const {error: err} = checkCreateRequestSchema.validate(message);
       if (err) throw new BadRequest(`Invalid ${eventName} request: ${err.message}`);    
-      createdCheck = await createCheck(message.observation);
+      createdCheck = await createCheck(message.new);
     } catch (err) {
       logCensorAndRethrow(eventName, err);
     }

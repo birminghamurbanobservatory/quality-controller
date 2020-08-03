@@ -6,7 +6,7 @@ import {getTimeseries, updateTimeseries, createTimeseries, deleteTimeseries} fro
 import {applyChecksToObservation} from './quality-control.service';
 import {TimeseriesApp} from '../timeseries/timeseries-app.interface';
 import * as logger from 'node-logger';
-
+import * as event from 'event-stream'; 
 
 export async function qualityControlObservation(observation: ObservationClient): Promise<ObservationClient> {
   
@@ -49,11 +49,37 @@ export async function qualityControlObservation(observation: ObservationClient):
     await upsertTimeseries(observation, uniqCheckTypes, existingTimeseries);
   }
 
-  return checkedObservation;
+  // Tell the observations-manager to update its records
+  if (!isEqual(observation.hasResult.flags, checkedObservation.hasResult.flags)) {
+    try {
+      await updateObservation(observation.id, checkedObservation.hasResult.flags);
+    } catch (err) {
+      if (err) {
+        logger.error(`Failed to update observation ${observation.id}`);
+      }
+    }
+  }
 
+  // Still makes sense to return the checkedObservation, as the incoming-observation-manager might want to do something with it.
+  return checkedObservation;
 }
 
 
+async function updateObservation(observationId: string, newFlags: string[]): Promise<ObservationClient> {
+
+  const updated = await event.publishExpectingResponse('observation.update.request', {
+    where: {
+      id: observationId
+    },
+    updates: {
+      hasResult: {
+        flags: newFlags
+      }
+    }
+  });
+  return updated;
+
+}
 
 
 export async function upsertTimeseries(observation: ObservationClient, checkTypesToSupport: string[], existingTimeseries?: TimeseriesApp): Promise<TimeseriesApp> {

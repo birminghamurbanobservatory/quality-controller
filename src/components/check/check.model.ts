@@ -22,11 +22,20 @@ const schema = new mongoose.Schema({
     hasDeployment: String,
     aggregation: String,
     // Worth having two fields here for array properties, because it gives the option to specify strict matches, but also a simple string value which might be easier to use on the front end.
-    disciplines: [String], // exact match
+    disciplines: {
+      type: [String],
+      default: undefined // so it doesn't assign an empty array by default
+    }, // exact match
     disciplinesIncludes: String, // observation property array just has to include this value to match
-    hostedByPath: [String], // order is important
+    hostedByPath: { // order is important
+      type: [String],
+      default: undefined // so it doesn't assign an empty array by default
+    }, 
     hostedByPathIncludes: String,
-    usedProcedures: [String],
+    usedProcedures: { // order is important
+      type: [String],
+      default: undefined // so it doesn't assign an empty array by default
+    },
     usedProceduresIncludes: String
   },
   // Because the config below will depend on the checkType we'll allow anything here, and handle the validation elsewhere.

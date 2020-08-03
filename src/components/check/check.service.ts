@@ -369,8 +369,8 @@ export function checkAppToClient(checkApp: CheckApp): CheckClient {
 function checkAppToDb(checkApp: any): any {
   const checkDb = cloneDeep(checkApp);
   // Sort disciplines alphabetically
-  if (checkDb.disciplines) {
-    checkDb.disciplines = sortBy(checkDb.disciplines);
+  if (checkDb.appliesTo.disciplines) {
+    checkDb.appliesTo.disciplines = sortBy(checkDb.appliesTo.disciplines);
   }
   return checkDb;
 }

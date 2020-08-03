@@ -47,6 +47,8 @@ export async function createCheck(check: any): Promise<CheckClient> {
   const {error: err} = newCheckSchema.validate(check);
   if (err) throw new InvalidCheck(err.message);
 
+  // TODO: Might be worth checking that a check with this exact set of appliesToProperties doesn't already exist.
+
   const createdCheck = await checkService.createCheck(check);
 
   return checkService.checkAppToClient(createdCheck);

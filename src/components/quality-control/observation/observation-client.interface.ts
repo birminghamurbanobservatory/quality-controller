@@ -12,7 +12,7 @@ export interface ObservationClient {
   aggregation?: string;
   disciplines?: string[];
   usedProcedures?: string[];
-  location?: LocationClient
+  location?: Location;
 }
 
 interface Result {
