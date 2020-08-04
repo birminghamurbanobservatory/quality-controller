@@ -22,6 +22,11 @@ export async function qualityControlObservation(observation: ObservationClient):
     return observation;
   }
 
+  logger.debug(`Found ${checks} check(s) to perform on observation ${observation.id}.`, {
+    observation,
+    checks
+  });
+
   const uniqCheckTypes = uniq(checks.map((check) => check.checkType));
   const checksThatInvolveTimeseries = ['persistence'];
   const timeseriesIsInvolved = intersection(uniqCheckTypes, checksThatInvolveTimeseries).length > 0;

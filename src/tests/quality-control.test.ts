@@ -208,5 +208,156 @@ describe('Tests of full quality control process', () => {
   });
 
 
+  test('Real-world meteorology example', async () => {
+    // On an early iteration of this microservice obervations were being wrongly flagged when the setup was a below.
+    
+    expect.assertions(1);
+
+    const checksClient = [
+      {
+        checkType: 'above-range',
+        appliesTo: {
+          observedProperty: 'relative-humidity',
+          unit: 'percent'
+        },
+        config: {
+          maxValue: 100
+        }
+      },
+      {
+        checkType: 'below-range',
+        appliesTo: {
+          observedProperty: 'relative-humidity',
+          unit: 'percent'
+        },
+        config: {
+          minValue: 0
+        }
+      },
+      {
+        checkType: 'persistence',
+        appliesTo: {
+          observedProperty: 'air-pressure',
+          hasFeatureOfInterest: 'earth-atmosphere',
+          disciplinesIncludes: 'meteorology'
+        },
+        config: {
+          nConsecutiveAllowed: 10,
+          minSpanInSeconds: 3600
+        }
+      },
+      {
+        checkType: 'below-range',
+        appliesTo: {
+          observedProperty: 'precipitation-rate'
+        },
+        config: {
+          minValue: 0
+        }
+      },
+      {
+        checkType: 'below-range',
+        appliesTo: {
+          observedProperty: 'precipitation-depth'
+        },
+        config: {
+          minValue: 0
+        }
+      },
+      {
+        checkType: 'below-range',
+        appliesTo: {
+          observedProperty: 'relative-humidity',
+          unit: 'percent',
+          hasFeatureOfInterest: 'earth-atmosphere',
+          disciplinesIncludes: 'meteorology'
+        },
+        config: {
+          minValue: 1
+        }
+      },
+      {
+        checkType: 'persistence',
+        appliesTo: {
+          observedProperty: 'air-temperature',
+          hasFeatureOfInterest: 'earth-atmosphere',
+          disciplinesIncludes: 'meteorology'
+        },
+        config: {
+          nConsecutiveAllowed: 10,
+          minSpanInSeconds: 3600
+        }
+      },
+      {
+        checkType: 'below-range',
+        appliesTo: {
+          observedProperty: 'air-temperature',
+          unit: 'degree-celsius'
+        },
+        config: {
+          minValue: -273.15
+        }
+      }
+    ];
+
+    // Create these checks
+    const checks = await Promise.map(checksClient, async (checkClient) => {
+      const check = await createCheck(checkClient);
+      return check;
+    });
+
+    // This is an obs that was flagged when there was a bug in the code when it should not have been.
+    const obs1Before = {
+      id: 'o6een4vLDtmmFAQ',
+      timeseriesId: 'JZZ',
+      resultTime: '2020-08-03T22:49:13.000Z',
+      hasResult: {
+        value: 325,
+        flags: [
+          'above-range'
+        ],
+        unit: 'degree'
+      },
+      madeBySensor: 'netatmo-06-00-00-03-e2-f4-wind',
+      observedProperty: 'wind-direction',
+      aggregation: 'average',
+      hasFeatureOfInterest: 'earth-atmosphere',
+      hasDeployment: 'netatmo-gatekeepers',
+      hostedByPath: [
+        'b38-garden',
+        'netatmo-06-00-00-03-e2-f4-wind-module-r0m'
+      ],
+      location: {
+        id: '78b9aa16-b58e-4476-b854-5956afae5d59',
+        geometry: {
+          type: 'Point',
+          coordinates: [
+            -1.9001989,
+            52.382618
+          ]
+        },
+        validAt: '2020-07-13T14:04:24.623Z'
+      },
+      disciplines: [
+        'meteorology'
+      ],
+      phenomenonTime: {
+        hasBeginning: '2020-08-03T22:44:12.000Z',
+        hasEnd: '2020-08-03T22:49:13.000Z',
+        duration: 301
+      },
+      usedProcedures: [
+        'netatmo-wind-direction-5-min-average'
+      ]
+    };
+
+    const obs1After = await qualityControlObservation(obs1Before);
+
+    // Obs should be exactly the same after
+    expect(obs1After).toEqual(obs1Before);
+
+
+  });
+
 
 });
