@@ -13,6 +13,7 @@ import {paginationOptionsToMongoFindOptions} from '../../utils/pagination-option
 import {whereToMongoFind} from '../../utils/where-to-mongo-find';
 import {renameProperties} from '../../utils/rename';
 import {GetChecksFail} from './errors/GetChecksFail';
+import * as logger from 'node-logger';
 
 
 export const validCheckTypes = ['below-range', 'above-range', 'persistence'];
@@ -22,6 +23,7 @@ export async function findChecksForObservation(observation: ObservationClient): 
 
   // The challenge here is to find all the checks whose appliesTo exactly matches properties of the observation whilst not excluding other checks that have a different subset of matching propeties. The solution is to make heavy use of the $or operator.
   const where = observationToFindChecksWhere(observation);
+  logger.debug(`where object to find checks for observation ${observation.id}`, where);
 
   let checks;
 
