@@ -22,7 +22,7 @@ export async function qualityControlObservation(observation: ObservationClient):
     return observation;
   }
 
-  logger.debug(`Found ${checks} check(s) to perform on observation ${observation.id}.`, {
+  logger.debug(`Found ${checks.length} check(s) to perform on observation ${observation.id}.`, {
     observation,
     checks
   });
