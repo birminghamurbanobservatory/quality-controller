@@ -313,9 +313,6 @@ describe('Tests of full quality control process', () => {
       resultTime: '2020-08-03T22:49:13.000Z',
       hasResult: {
         value: 325,
-        flags: [
-          'above-range'
-        ],
         unit: 'degree'
       },
       madeBySensor: 'netatmo-06-00-00-03-e2-f4-wind',

@@ -14,9 +14,26 @@ import {whereToMongoFind} from '../../utils/where-to-mongo-find';
 import {renameProperties} from '../../utils/rename';
 import {GetChecksFail} from './errors/GetChecksFail';
 import * as logger from 'node-logger';
+import {ConfirmCheckDoesNotAlreadyExistFail} from './errors/ConfirmCheckDoesNotAlreadyExistFail';
+import {CheckAlreadyExists} from './errors/CheckAlreadyExists';
 
 
 export const validCheckTypes = ['below-range', 'above-range', 'persistence'];
+
+const appliesToProps = [
+  'madeBySensor',
+  'observedProperty',
+  'unit',
+  'hasFeatureOfInterest',
+  'hasDeployment',
+  'aggregation',
+  'disciplines',
+  'disciplinesIncludes',
+  'hostedByPath',
+  'hostedByPathIncludes',
+  'usedProcedures',
+  'usedProceduresIncludes'
+];
 
 
 export async function findChecksForObservation(observation: ObservationClient): Promise<CheckApp[]> {
@@ -47,12 +64,12 @@ export function observationToFindChecksWhere(observation: ObservationClient): an
   if (ck.nonEmptyString(observation.madeBySensor)) {
     madeBySensorObj = {
       $or: [
-        {madeBySensor: observation.madeBySensor},
-        {madeBySensor: {$exists: false}}
+        {'appliesTo.madeBySensor': observation.madeBySensor},
+        {'appliesTo.madeBySensor': {$exists: false}}
       ]
     };
   } else {
-    madeBySensorObj = {madeBySensor: {$exists: false}};
+    madeBySensorObj = {'appliesTo.madeBySensor': {$exists: false}};
   }
   andArray.push(madeBySensorObj);
 
@@ -61,12 +78,12 @@ export function observationToFindChecksWhere(observation: ObservationClient): an
   if (ck.nonEmptyString(observation.observedProperty)) {
     observedPropertyObj = {
       $or: [
-        {observedProperty: observation.observedProperty},
-        {observedProperty: {$exists: false}}
+        {'appliesTo.observedProperty': observation.observedProperty},
+        {'appliesTo.observedProperty': {$exists: false}}
       ]
     };
   } else {
-    observedPropertyObj = {observedProperty: {$exists: false}};
+    observedPropertyObj = {'appliesTo.observedProperty': {$exists: false}};
   }
   andArray.push(observedPropertyObj);
 
@@ -75,12 +92,12 @@ export function observationToFindChecksWhere(observation: ObservationClient): an
   if (ck.nonEmptyString(observation.hasResult.unit)) {
     unitObj = {
       $or: [
-        {unit: observation.hasResult.unit},
-        {unit: {$exists: false}}
+        {'appliesTo.unit': observation.hasResult.unit},
+        {'appliesTo.unit': {$exists: false}}
       ]
     };
   } else {
-    unitObj = {unit: {$exists: false}};
+    unitObj = {'appliesTo.unit': {$exists: false}};
   }
   andArray.push(unitObj);
 
@@ -89,12 +106,12 @@ export function observationToFindChecksWhere(observation: ObservationClient): an
   if (ck.nonEmptyString(observation.aggregation)) {
     aggregationObj = {
       $or: [
-        {aggregation: observation.aggregation},
-        {aggregation: {$exists: false}}
+        {'appliesTo.aggregation': observation.aggregation},
+        {'appliesTo.aggregation': {$exists: false}}
       ]
     };
   } else {
-    aggregationObj = {aggregation: {$exists: false}};
+    aggregationObj = {'appliesTo.aggregation': {$exists: false}};
   }
   andArray.push(aggregationObj);
 
@@ -103,12 +120,12 @@ export function observationToFindChecksWhere(observation: ObservationClient): an
   if (ck.nonEmptyString(observation.hasFeatureOfInterest)) {
     hasFeatureOfInterestObj = {
       $or: [
-        {hasFeatureOfInterest: observation.hasFeatureOfInterest},
-        {hasFeatureOfInterest: {$exists: false}}
+        {'appliesTo.hasFeatureOfInterest': observation.hasFeatureOfInterest},
+        {'appliesTo.hasFeatureOfInterest': {$exists: false}}
       ]
     };
   } else {
-    hasFeatureOfInterestObj = {hasFeatureOfInterest: {$exists: false}};
+    hasFeatureOfInterestObj = {'appliesTo.hasFeatureOfInterest': {$exists: false}};
   }
   andArray.push(hasFeatureOfInterestObj);
 
@@ -117,12 +134,12 @@ export function observationToFindChecksWhere(observation: ObservationClient): an
   if (ck.nonEmptyString(observation.hasDeployment)) {
     hasDeploymentObj = {
       $or: [
-        {hasDeployment: observation.hasDeployment},
-        {hasDeployment: {$exists: false}}
+        {'appliesTo.hasDeployment': observation.hasDeployment},
+        {'appliesTo.hasDeployment': {$exists: false}}
       ]
     };
   } else {
-    hasDeploymentObj = {hasDeployment: {$exists: false}};
+    hasDeploymentObj = {'appliesTo.hasDeployment': {$exists: false}};
   }
   andArray.push(hasDeploymentObj);
 
@@ -131,12 +148,12 @@ export function observationToFindChecksWhere(observation: ObservationClient): an
   if (ck.nonEmptyArray(observation.hostedByPath)) {
     hostedByPathObj = {
       $or: [
-        {hostedByPath: observation.hostedByPath},
-        {hostedByPath: {$exists: false}}
+        {'appliesTo.hostedByPath': observation.hostedByPath},
+        {'appliesTo.hostedByPath': {$exists: false}}
       ]
     };
   } else {
-    hostedByPathObj = {hostedByPath: {$exists: false}};
+    hostedByPathObj = {'appliesTo.hostedByPath': {$exists: false}};
   }
   andArray.push(hostedByPathObj);
 
@@ -145,14 +162,14 @@ export function observationToFindChecksWhere(observation: ObservationClient): an
   if (ck.nonEmptyArray(observation.hostedByPath)) {
     hostedByPathIncludesObj = {
       $or: [
-        {hostedByPathIncludes: {$exists: false}}
+        {'appliesTo.hostedByPathIncludes': {$exists: false}}
       ]
     };
     observation.hostedByPath.forEach((platform) => {
-      hostedByPathIncludesObj.$or.push({hostedByPathIncludes: platform});
+      hostedByPathIncludesObj.$or.push({'appliesTo.hostedByPathIncludes': platform});
     });
   } else {
-    hostedByPathIncludesObj = {hostedByPathIncludes: {$exists: false}};
+    hostedByPathIncludesObj = {'appliesTo.hostedByPathIncludes': {$exists: false}};
   }
   andArray.push(hostedByPathIncludesObj);
 
@@ -162,12 +179,12 @@ export function observationToFindChecksWhere(observation: ObservationClient): an
     disciplinesObj = {
       $or: [
         // disciplines array will be sorted before creating a new check, thus important we sort here too to ensure match.
-        {disciplines: sortBy(observation.disciplines)},
-        {disciplines: {$exists: false}}
+        {'appliesTo.disciplines': sortBy(observation.disciplines)},
+        {'appliesTo.disciplines': {$exists: false}}
       ]
     };
   } else {
-    disciplinesObj = {disciplines: {$exists: false}};
+    disciplinesObj = {'appliesTo.disciplines': {$exists: false}};
   }
   andArray.push(disciplinesObj);
 
@@ -176,14 +193,14 @@ export function observationToFindChecksWhere(observation: ObservationClient): an
   if (ck.nonEmptyArray(observation.disciplines)) {
     disciplinesIncludesObj = {
       $or: [
-        {disciplinesIncludes: {$exists: false}}
+        {'appliesTo.disciplinesIncludes': {$exists: false}}
       ]
     };
     observation.disciplines.forEach((platform) => {
-      disciplinesIncludesObj.$or.push({disciplinesIncludes: platform});
+      disciplinesIncludesObj.$or.push({'appliesTo.disciplinesIncludes': platform});
     });
   } else {
-    disciplinesIncludesObj = {disciplinesIncludes: {$exists: false}};
+    disciplinesIncludesObj = {'appliesTo.disciplinesIncludes': {$exists: false}};
   }
   andArray.push(disciplinesIncludesObj);
 
@@ -192,12 +209,12 @@ export function observationToFindChecksWhere(observation: ObservationClient): an
   if (ck.nonEmptyArray(observation.usedProcedures)) {
     usedProceduresObj = {
       $or: [
-        {usedProcedures: observation.usedProcedures},
-        {usedProcedures: {$exists: false}}
+        {'appliesTo.usedProcedures': observation.usedProcedures},
+        {'appliesTo.usedProcedures': {$exists: false}}
       ]
     };
   } else {
-    usedProceduresObj = {usedProcedures: {$exists: false}};
+    usedProceduresObj = {'appliesTo.usedProcedures': {$exists: false}};
   }
   andArray.push(usedProceduresObj);
 
@@ -206,14 +223,14 @@ export function observationToFindChecksWhere(observation: ObservationClient): an
   if (ck.nonEmptyArray(observation.usedProcedures)) {
     usedProceduresIncludesObj = {
       $or: [
-        {usedProceduresIncludes: {$exists: false}}
+        {'appliesTo.usedProceduresIncludes': {$exists: false}}
       ]
     };
     observation.usedProcedures.forEach((platform) => {
-      usedProceduresIncludesObj.$or.push({usedProceduresIncludes: platform});
+      usedProceduresIncludesObj.$or.push({'appliesTo.usedProceduresIncludes': platform});
     });
   } else {
-    usedProceduresIncludesObj = {usedProceduresIncludes: {$exists: false}};
+    usedProceduresIncludesObj = {'appliesTo.usedProceduresIncludes': {$exists: false}};
   }
   andArray.push(usedProceduresIncludesObj);
 
@@ -229,6 +246,8 @@ export function observationToFindChecksWhere(observation: ObservationClient): an
 
 export async function createCheck(check: CheckApp): Promise<CheckApp> {
 
+  await confirmCheckDoesNotAlreadyExist(check);
+
   const checkToCreate = checkAppToDb(check);
   
   let createdCheck;
@@ -239,6 +258,40 @@ export async function createCheck(check: CheckApp): Promise<CheckApp> {
   }
 
   return checkDbToApp(createdCheck);
+
+}
+
+
+export async function confirmCheckDoesNotAlreadyExist(check: CheckApp): Promise<void> {
+
+  const where = {
+    checkType: check.checkType
+  };
+  // Crucially here we need to specify that appliesTo properties not included in the check must not exist.
+  appliesToProps.forEach((key) => {
+    if (ck.assigned(check.appliesTo[key])) {
+      where[`appliesTo.${key}`] = check.appliesTo[key];
+    } else {
+      where[`appliesTo.${key}`] = {$exists: false};
+    }
+  });
+
+  if (check.config.nConsecutiveAllowed === 11) {
+    throw new CheckAlreadyExists('Whoops');
+  }
+
+  let found;
+  try {
+    found = await Check.findOne(where).exec();
+  } catch (err) {
+    throw new ConfirmCheckDoesNotAlreadyExistFail(undefined, err.message);
+  }
+
+  if (found) {
+    throw new CheckAlreadyExists(`A '${check.checkType}' check with the same appliesTo properties already exists.`);
+  } else {
+    return;
+  }
 
 }
 
@@ -270,21 +323,6 @@ export async function getChecks(where: any = {}, options: any = {}): Promise<{da
   if (where.disciplines) {
     where.disciplines = sortBy(where.disciplines);
   }
-
-  const appliesToProps = [
-    'madeBySensor',
-    'observedProperty',
-    'unit',
-    'hasFeatureOfInterest',
-    'hasDeployment',
-    'aggregation',
-    'disciplines',
-    'disciplinesIncludes',
-    'hostedByPath',
-    'hostedByPathIncludes',
-    'usedProcedures',
-    'usedProceduresIncludes'
-  ];
 
   const mappings = {};  
   appliesToProps.forEach((key) => {

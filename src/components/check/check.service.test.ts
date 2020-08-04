@@ -22,52 +22,52 @@ describe('Testing of observationToFindChecksWhere function', () => {
       $and: [
         {
           $or: [
-            {madeBySensor: 'sensor-1'},
-            {madeBySensor: {$exists: false}},
+            {'appliesTo.madeBySensor': 'sensor-1'},
+            {'appliesTo.madeBySensor': {$exists: false}},
           ]
         },
         {
           $or: [
-            {observedProperty: 'air-temperature'},
-            {observedProperty: {$exists: false}},
+            {'appliesTo.observedProperty': 'air-temperature'},
+            {'appliesTo.observedProperty': {$exists: false}},
           ]
         },
         {
           $or: [
-            {unit: 'degree-celsius'},
-            {unit: {$exists: false}},
+            {'appliesTo.unit': 'degree-celsius'},
+            {'appliesTo.unit': {$exists: false}},
           ]
         },
         {
           $or: [
-            {aggregation: 'instant'},
-            {aggregation: {$exists: false}},
+            {'appliesTo.aggregation': 'instant'},
+            {'appliesTo.aggregation': {$exists: false}},
           ]
         },
         {
-          hasFeatureOfInterest: {$exists: false},
+          'appliesTo.hasFeatureOfInterest': {$exists: false},
         },
         {
           // These exist clauses for properties that don't exist in the observation are crucial
-          hasDeployment: {$exists: false},
+          'appliesTo.hasDeployment': {$exists: false},
         },
         {
-          hostedByPath: {$exists: false},
+          'appliesTo.hostedByPath': {$exists: false},
         },
         {
-          hostedByPathIncludes: {$exists: false},
+          'appliesTo.hostedByPathIncludes': {$exists: false},
         },
         {
-          disciplines: {$exists: false},
+          'appliesTo.disciplines': {$exists: false},
         },
         {
-          disciplinesIncludes: {$exists: false},
+          'appliesTo.disciplinesIncludes': {$exists: false},
         },
         {
-          usedProcedures: {$exists: false}
+          'appliesTo.usedProcedures': {$exists: false}
         },
         {
-          usedProceduresIncludes: {$exists: false}
+          'appliesTo.usedProceduresIncludes': {$exists: false}
         }
       ]
     };
@@ -104,77 +104,77 @@ describe('Testing of observationToFindChecksWhere function', () => {
       $and: [
         {
           $or: [
-            {madeBySensor: 'sensor-1'},
-            {madeBySensor: {$exists: false}},
+            {'appliesTo.madeBySensor': 'sensor-1'},
+            {'appliesTo.madeBySensor': {$exists: false}},
           ]
         },
         {
           $or: [
-            {observedProperty: 'air-temperature'},
-            {observedProperty: {$exists: false}},
+            {'appliesTo.observedProperty': 'air-temperature'},
+            {'appliesTo.observedProperty': {$exists: false}},
           ]
         },
         {
           $or: [
-            {unit: 'degree-celsius'},
-            {unit: {$exists: false}},
+            {'appliesTo.unit': 'degree-celsius'},
+            {'appliesTo.unit': {$exists: false}},
           ]
         },
         {
           $or: [
-            {aggregation: 'instant'},
-            {aggregation: {$exists: false}},
+            {'appliesTo.aggregation': 'instant'},
+            {'appliesTo.aggregation': {$exists: false}},
           ]
         },
         {
           $or: [
-            {hasFeatureOfInterest: 'earth-atmosphere'},
-            {hasFeatureOfInterest: {$exists: false}},
+            {'appliesTo.hasFeatureOfInterest': 'earth-atmosphere'},
+            {'appliesTo.hasFeatureOfInterest': {$exists: false}},
           ]
         },
         {
           $or: [
-            {hasDeployment: 'deployment-1'},
-            {hasDeployment: {$exists: false}},
+            {'appliesTo.hasDeployment': 'deployment-1'},
+            {'appliesTo.hasDeployment': {$exists: false}},
           ]
         },
         {
           $or: [
-            {hostedByPath: ['parent-plat', 'child-plat']},
-            {hostedByPath: {$exists: false}},
+            {'appliesTo.hostedByPath': ['parent-plat', 'child-plat']},
+            {'appliesTo.hostedByPath': {$exists: false}},
           ]
         },
         {
           $or: [
-            {hostedByPathIncludes: {$exists: false}},
-            {hostedByPathIncludes: 'parent-plat'},
-            {hostedByPathIncludes: 'child-plat'},
+            {'appliesTo.hostedByPathIncludes': {$exists: false}},
+            {'appliesTo.hostedByPathIncludes': 'parent-plat'},
+            {'appliesTo.hostedByPathIncludes': 'child-plat'},
           ]
         },
         {
           $or: [
-            {disciplines: ['atmospheric-chemistry', 'meteorology']}, // now sorted
-            {disciplines: {$exists: false}},
+            {'appliesTo.disciplines': ['atmospheric-chemistry', 'meteorology']}, // now sorted
+            {'appliesTo.disciplines': {$exists: false}},
           ]
         },
         {
           $or: [
-            {disciplinesIncludes: {$exists: false}},
-            {disciplinesIncludes: 'meteorology'},
-            {disciplinesIncludes: 'atmospheric-chemistry'},
+            {'appliesTo.disciplinesIncludes': {$exists: false}},
+            {'appliesTo.disciplinesIncludes': 'meteorology'},
+            {'appliesTo.disciplinesIncludes': 'atmospheric-chemistry'},
           ]
         },
         {
           $or: [
-            {usedProcedures: ['b-procedure', 'a-procedure']},
-            {usedProcedures: {$exists: false}},
+            {'appliesTo.usedProcedures': ['b-procedure', 'a-procedure']},
+            {'appliesTo.usedProcedures': {$exists: false}},
           ]
         },
         {
           $or: [
-            {usedProceduresIncludes: {$exists: false}},
-            {usedProceduresIncludes: 'b-procedure'},
-            {usedProceduresIncludes: 'a-procedure'},
+            {'appliesTo.usedProceduresIncludes': {$exists: false}},
+            {'appliesTo.usedProceduresIncludes': 'b-procedure'},
+            {'appliesTo.usedProceduresIncludes': 'a-procedure'},
           ]
         }
       ]
