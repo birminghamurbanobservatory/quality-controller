@@ -60,7 +60,7 @@ export async function qualityControlObservation(observation: ObservationClient):
       await updateObservation(observation.id, checkedObservation.hasResult.flags);
     } catch (err) {
       if (err) {
-        logger.error(`Failed to update observation ${observation.id}`);
+        logger.error(`Failed to update observation ${observation.id}`, err);
       }
     }
   }
