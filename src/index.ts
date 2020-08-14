@@ -5,7 +5,6 @@ import {config} from './config';
 import * as logger from 'node-logger';
 const appName = require('../package.json').name; // Annoyingly if i use import here, the built app doesn't update.
 import {connectDb} from './db/mongodb-service';
-// import {initialiseEvents} from './events/initialise-events';
 import {getCorrelationId} from './utils/correlator';
 // Handle Uncaught Errors - Make sure the logger is already configured first.
 import './utils/handle-uncaught-errors';
