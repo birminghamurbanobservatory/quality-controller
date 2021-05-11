@@ -28,7 +28,7 @@
     "date-fns": "^2.15.0",
     "dotenv": "^8.2.0",
     "event-stream": "github:birminghamurbanobservatory/event-stream#semver:^2.0.0",
-    "lodash": "^4.17.19",
+    "lodash": "^4.17.21",
     "mongoose": "^5.9.25",
     "node-logger": "github:birminghamurbanobservatory/node-logger#semver:^1.0.0",
     "shortid": "^2.2.15"
